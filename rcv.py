@@ -127,7 +127,8 @@ def delete_undervotes(L):
     """
 
     L = delete_double_undervotes(L)
-    return delete_name(L, 'undervote')
+    L = delete_name(L, 'undervote')
+    return L
 
 
 def delete_overvotes(L):
@@ -267,7 +268,7 @@ def rcv_winner(L, tie_breaker, printing_wanted=True):
     Return RCV (aka IRV) winner for ballot list L.
 
     Args:
-        L (list): list of ballots
+        L (list): list of ballots (this should be a "cleaned" list)
         tie_breaker: list of all choices, most-favored first
         printing_wanted (bool): True if printing desired
 
@@ -277,7 +278,7 @@ def rcv_winner(L, tie_breaker, printing_wanted=True):
     Example:
         >>> L = [('a', 'b'), ('b', 'a'), ('b', 'undervote')]
         >>> tie_breaker = ['a', 'b']
-        >>> rcv_winner(L, tie_breaker)
+        >>> rcv_winner(clean(L), tie_breaker)
         tie_breaker list: ['a', 'b']
         Round: 1
           First Choice Counts:
@@ -289,8 +290,6 @@ def rcv_winner(L, tie_breaker, printing_wanted=True):
           Count: 3
         'b'
     """
-
-    L = clean(L)
 
     round_number = 0
 
@@ -322,6 +321,22 @@ def rcv_winner(L, tie_breaker, printing_wanted=True):
 
         L = delete_name(LL, e)
         
+
+def clean(L):
+    """
+    Clean list L of ballots of undervotes, overvotes
+
+    Args:
+        L (list): list of ballots to be cleaned
+
+    Returns:
+        (list): list of cleaned ballots
+    """
+    
+    L = delete_overvotes(L)
+    L = delete_undervotes(L)
+    return L
+
 
 def read_ME_data(filename, printing_wanted=True):
     """
@@ -357,24 +372,9 @@ def read_ME_data(filename, printing_wanted=True):
         for choice in C:
             print("    {}: {}".format(choice, C[choice]))
 
+    L = clean(L)
     return(L)
     
-
-def clean(L):
-    """
-    Clean list L of ballots of undervotes, overvotes
-
-    Args:
-        L (list): list of ballots to be cleaned
-
-    Returns:
-        (list): list of cleaned ballots
-    """
-    
-    L = delete_overvotes(L)
-    L = delete_undervotes(L)
-    return L
-
 
 def main():
     L = read_ME_data('me_votes.csv')
