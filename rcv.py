@@ -363,6 +363,8 @@ def read_ME_data(filename, printing_wanted=True):
             L.append(ballot_tuple)
             tally[ballot_tuple] = 1 + tally.get(ballot_tuple, 0)
 
+    L = clean(L)
+
     if printing_wanted:
         print("Number of ballots read: {}".format(len(L)))
         print("Number of distinct ballots read: {}".format(len(tally)))
@@ -371,7 +373,6 @@ def read_ME_data(filename, printing_wanted=True):
         for choice in C:
             print("    {}: {}".format(choice, C[choice]))
 
-    L = clean(L)
     return(L)
     
 
