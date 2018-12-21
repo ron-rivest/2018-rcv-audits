@@ -39,7 +39,7 @@ def audit():
     n = len(L)
 
     sample_order = list(sampler(range(n), with_replacement=False, output='id', seed=1))
-    print(sample_order[:50])
+    print("Sample order[:50]:", sample_order[:50])
 
     n_stages=50
     for stage in range(1, n_stages+1):
