@@ -166,17 +166,17 @@ def count_first_choices(L):
     Example:
         >>> L = [('a', 'b'), ('c'), (), ('d'), ('a')]
         >>> count_first_choices(L)
-        {'a': 2, 'b': 0, 'c': 1, 'd': 1}
+        {'a': 2, 'c': 1, 'd': 1}
     """
 
     d = dict()
     for ballot in L:
-        for choice in ballot:
-            if choice not in d:
-                d[choice] = 0
         if len(ballot)>0:
             first_choice = ballot[0]
-            d[first_choice] = 1 + d[first_choice]
+            if first_choice in d:
+                d[first_choice] = 1 + d[first_choice]
+            else:
+                d[first_choice] = 1
 
     return d
 
@@ -228,16 +228,15 @@ def rcv_round(L, tie_breaker):
 
         >>> L = [('a', 'b'), ('c', 'd'), ('c', 'e'), ('f', 'a')]
         >>> rcv_round(L, ('a', 'b', 'c', 'd', 'e', 'f'))
-        (None, {'a': 1, 'b': 0, 'c': 2, 'd': 0, 'e': 0, 'f': 1}, 'e', [('a', 'b'), ('c', 'd'), ('c',), ('f', 'a')])
+        (None, {'a': 1, 'c': 2, 'f': 1}, 'f', [('a', 'b'), ('c', 'd'), ('c', 'e'), ('a',)])
 
         >>> L = [('a', 'b'), ('c', 'd'), ('c', 'e'), ('f', 'a'), ('f', 'b')]
         >>> rcv_round(L, ('a', 'b', 'c', 'd', 'e', 'f'))
-        (None, {'a': 1, 'b': 0, 'c': 2, 'd': 0, 'e': 0, 'f': 2}, 'e', [('a', 'b'), ('c', 'd'), ('c',), ('f', 'a'), ('f', 'b')])
+        (None, {'a': 1, 'c': 2, 'f': 2}, 'a', [('b',), ('c', 'd'), ('c', 'e'), ('f',), ('f', 'b')])
 
         >>> L = [('a', 'b'), ('a', 'c')]
         >>> rcv_round(L, ('a', 'b', 'c'))
-        ('a', {'a': 2, 'b': 0, 'c': 0}, None, None)
-
+        ('a', {'a': 2}, None, None)
     """
 
     d = count_first_choices(L)
