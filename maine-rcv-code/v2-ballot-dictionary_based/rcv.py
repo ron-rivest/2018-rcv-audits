@@ -9,34 +9,6 @@
 
 import csv
 
-
-def choices_on_ballots(L, printing_wanted=False):
-    """
-    Return a dict of the choices shown on ballot list L, with counts.
-
-    Args:
-        L (list): list of ballots
-        
-    Returns:
-        C (dict): dict of distinct strings appearing in ballots in L,
-                  each with count of number of occurrences.
-
-    Example:
-        
-    """
-
-    C = dict()
-    ballot_no = 0
-    for ballot in L:
-        ballot_no += 1
-        for choice in ballot:
-            if False and choice not in C:
-                print("Choice {} first seen in ballot {}"
-                      .format(choice, ballot_no))
-            C[choice] = 1 + C.get(choice, 0)
-    return C
-
-
 def delete_double_undervotes(tally):
     """
     Delete all double undervotes from a ballot dictionary tally
