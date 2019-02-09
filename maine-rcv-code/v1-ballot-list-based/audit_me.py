@@ -28,7 +28,9 @@ def randint(a, b):
     
 def get_data():
 
-    L = rcv.read_ME_data('me_votes.csv', True)
+    votes_dir = "../../maine-rcv-data/"
+    votes_filename = votes_dir + 'me_votes.csv'
+    L = rcv.read_ME_data(votes_filename, True)
 
     return L
 
