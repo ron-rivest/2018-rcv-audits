@@ -1,11 +1,11 @@
 # Implementation of Maine's RCV rules
-# Ronald L. Rivest
-# September 26, 2018
+# Ronald L. Rivest and Zara Perumal
+# February 8, 2019
 
-# Basic data structure is a list of ballots.
-# Each ballot is a tuple of strings (of variable length, perhaps empty.
+# A ballot is a tuple of strings (of variable length, perhaps empty).
 # String is candidate name (aka choice).
 
+# A tally is a dictionary mapping ballots to real numbers (counts or counts+priors).
 
 import csv
 
@@ -17,10 +17,10 @@ def delete_double_undervotes(tally):
     subsequent positions from ballot.
 
     Args:
-        dictionary {tally}: dictionary  of ballots
+        dictionary {tally}: dictionary mapping ballots to nonnegative reals
 
     Returns:
-        dictionary {tally}: dictionary list of possibly modified ballots
+        dictionary {tally}: modified dictionary having possibly modified ballots
 
     Example:
         >>> tally = {('undervote','undervote', 'a'):1, ('b', 'undervote', 'undervote', 'c'):1, ('d', 'undervote'):1}
@@ -29,7 +29,7 @@ def delete_double_undervotes(tally):
     """
 
     new_tally = {}
-    for ballot , ballot_tally in tally.items():
+    for ballot, ballot_tally in tally.items():
         double_uv_at = len(ballot)
         for i in range(len(ballot)-1):
             if ballot[i] == 'undervote' \
@@ -50,21 +50,23 @@ def delete_name(tally, name, delete_following = False):
     also eliminated).
     
     Args:
-        dictionary {tally}: dictionary  of ballots
+        dictionary {tally}: dictionary mapping ballots to nonnegative reals.
         name (str): name of choice to be eliminated
         delete_following (bool): True if all following positions on ballot
             are also to be eliminated
 
     Returns:
-        dictionary {tally}: dictionary of possibly modified ballots
+        dictionary {tally}: dictionary mapping possibly modified ballots 
+                            to nonnegative reals.
 
     Examples:
         >>> tally = {('undervote', 'a'):1, ('undervote', 'undervote', 'b'):1, ('c', 'undervote'):1}
         >>> delete_undervotes(tally)
         {('a',): 1, (): 1, ('c',): 1}
     """
+
     new_tally  = {}
-    for ballot , ballot_tally in tally.items():
+    for ballot, ballot_tally in tally.items():
         if name in ballot:
             new_ballot = []
             for c in ballot:
@@ -75,9 +77,7 @@ def delete_name(tally, name, delete_following = False):
             new_ballot = tuple(new_ballot)
         else:
             new_ballot = ballot
-        
         new_tally[new_ballot] = new_tally[new_ballot] +  ballot_tally if new_ballot in new_tally.keys() else ballot_tally
-      
     return new_tally
 
 
@@ -88,10 +88,10 @@ def delete_undervotes(tally):
     then all following votes are removed too.
 
     Args:
-        dictionary {tally}: dictionary  of ballots
+        dictionary {tally}: dictionary mapping ballots to nonnegative reals.
 
     Returns:
-        dictionary {tally}: dictionary of possibly modified ballots
+        dictionary {tally}: dictionary with possibly modified ballots
 
     Example:
         >>> tally = {('undervote', 'a'):1, ('undervote', 'undervote', 'b'):1, ('c', 'undervote'):1}
@@ -111,10 +111,10 @@ def delete_overvotes(tally):
     If an overvote occurs, deletes it and all following positions from ballot.
 
     Args:
-        dictionary {tally}: dictionary  of ballots
+        dictionary {tally}: dictionary mapping ballots to nonnegative reals.
 
     Returns:
-        dictionary {tally}: dictionary of possibly modified ballots
+        dictionary {tally}: dictionary with possibly modified ballots
 
     Example:
         >>> tally = {('a', 'overvote', 'b'): 4, ('c', 'overvote') :2 , ('d',) :1 , ('overvote',) : 1 }
@@ -127,10 +127,10 @@ def delete_overvotes(tally):
 
 def count_first_choices(tally):
     """
-    Return dict giving count of all first choices in ballot dictionary tally.
+    Return dict giving count of all first choices in tally dictionary.
     
     Args:
-        tally (dictionary): dictionary of ballots
+        tally (dictionary): dictionary mapping ballots to nonnegative reals.
         
     Returns:
         (dict): dictionary mapping all choices that occur at least once
@@ -143,14 +143,13 @@ def count_first_choices(tally):
     """
 
     d = dict()
-    for ballot , count in tally.items():
+    for ballot, count in tally.items():
         if len(ballot)>0:
             first_choice = ballot[0]
             if first_choice in d:
                 d[first_choice] = count + d[first_choice]
             else:
                 d[first_choice] = count
-
     return d
 
 
@@ -183,10 +182,10 @@ def tie_breaker_index(tie_breaker, name):
 
 def rcv_round(tally, tie_breaker):
     """
-    Return winner of RCV (IRV) contest for ballot list L.
+    Return winner of RCV (IRV) contest for given tally.
     
     Args:
-        tally (dictionary): dictionary of ballots to counts
+        tally (dictionary): dictionary mapping ballots to nonnegative reals.
         tie_breaker: list of choices, used to break ties
             in favor of choice earlier in tie list
    
@@ -213,7 +212,6 @@ def rcv_round(tally, tie_breaker):
     """
 
     d = count_first_choices(tally)
-    #TODO(zarap): continue here
     assert len(d)>0, 'Error: all candidates eliminated!!'
 
     if len(d) == 1:
@@ -237,10 +235,11 @@ def rcv_round(tally, tie_breaker):
 
 def rcv_winner(tally, tie_breaker, printing_wanted=True):
     """
-    Return RCV (aka IRV) winner for ballot list L.
+    Return RCV (aka IRV) winner for given tally.
 
     Args:
-        dictionary {tally}: dictionary of ballots (this should be a "cleaned" list)
+        dictionary {tally}: dictionary mapping ballots to nonnegative reals
+                            (dictionary should be "cleaned")
         tie_breaker: list of all choices, most-favored first
         printing_wanted (bool): True if printing desired
 
@@ -275,7 +274,6 @@ def rcv_winner(tally, tie_breaker, printing_wanted=True):
         if printing_wanted:
             print("Round: {}".format(round_number))
 
-        #TODO(zarap): fix from here on
         (w, d, e, LL) = rcv_round(tally, tie_breaker)
         
         if w is not None:
@@ -303,7 +301,7 @@ def clean(tally):
         dctionary {tally} : dictionary of ballots to be cleaned
 
     Returns:
-        dctionary {clean_tally}: list of cleaned ballots
+        dictionary {clean_tally}: dictionary with cleaned ballots
     """
     
     tally = delete_overvotes(tally)
@@ -313,16 +311,15 @@ def clean(tally):
 
 def read_ME_data(filename, printing_wanted=True):
     """
-    Read CSV file and return list of ballots.
+    Read CSV file and return tally with counts for ballots.
 
     Args:
        filename (str): must be a CSV format file.
        printing_wanted (bool): True for printing basic info.
 
     Returns:
-       {tally}: dictionary of ballot
+       {tally}: dictionary mapping ballots to counts.
 
-    Example:
     """
 
     if printing_wanted:
@@ -334,16 +331,13 @@ def read_ME_data(filename, printing_wanted=True):
         for ballot in ballot_reader:
             ballot_tuple = tuple(ballot)
             tally[ballot_tuple] = 1 + tally.get(ballot_tuple, 0)
-
     clean_tally = clean(tally)
-
     if printing_wanted:
         print("Number of ballots read: {}".format(sum(clean_tally.values())))
-        print("Number of distinct ballots read: {}".format(sum(clean_tally.values())))
-        print("Choices shown on ballots (in any position) with count:")
-        for choice, count in clean_tally.items():
-            print("    {}: {}".format(choice, count))
-
+        print("Number of distinct ballots read: {}".format(len(clean_tally)))
+        # print("Choices shown on ballots (in any position) with count:")
+        # for choice, count in clean_tally.items():
+        #    print("    {}: {}".format(choice, count))
     return clean_tally
     
 
