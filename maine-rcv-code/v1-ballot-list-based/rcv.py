@@ -377,7 +377,9 @@ def read_ME_data(filename, printing_wanted=True):
     
 
 def main():
-    L = read_ME_data('me_votes.csv')
+    votes_dir = "../../maine-rcv-data/"
+    votes_filename = votes_dir + 'me_votes.csv'
+    L = read_ME_data(votes_filename)
     tie_breaker = []        
     rcv_winner(L, tie_breaker)
 
