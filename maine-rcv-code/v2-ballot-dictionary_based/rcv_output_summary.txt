@@ -1,0 +1,60 @@
+tie_breaker list: []
+Round: 1
+  First Choice Counts:
+    Cote, Adam Roland: 35478
+    Dion, Donna J.: 1596
+    Dion, Mark N.: 5200
+    Eves, Mark W.: 17887
+    Mills, Janet T.: 41735
+    Russell, Diane Marie: 2728
+    Sweet, Elizabeth A.: 20767
+    Write-in: 748
+  Choice eliminated: Write-in
+Round: 2
+  First Choice Counts:
+    Cote, Adam Roland: 35547
+    Dion, Donna J.: 1615
+    Dion, Mark N.: 5229
+    Eves, Mark W.: 17918
+    Mills, Janet T.: 41805
+    Russell, Diane Marie: 2739
+    Sweet, Elizabeth A.: 20821
+  Choice eliminated: Dion, Donna J.
+Round: 3
+  First Choice Counts:
+    Cote, Adam Roland: 35849
+    Dion, Mark N.: 5473
+    Eves, Mark W.: 18052
+    Mills, Janet T.: 42100
+    Russell, Diane Marie: 2867
+    Sweet, Elizabeth A.: 21004
+  Choice eliminated: Russell, Diane Marie
+Round: 4
+  First Choice Counts:
+    Cote, Adam Roland: 36182
+    Dion, Mark N.: 5809
+    Eves, Mark W.: 18436
+    Mills, Janet T.: 42569
+    Sweet, Elizabeth A.: 22102
+  Choice eliminated: Dion, Mark N.
+Round: 5
+  First Choice Counts:
+    Cote, Adam Roland: 37543
+    Eves, Mark W.: 19521
+    Mills, Janet T.: 44042
+    Sweet, Elizabeth A.: 22987
+  Choice eliminated: Eves, Mark W.
+Round: 6
+  First Choice Counts:
+    Cote, Adam Roland: 42623
+    Mills, Janet T.: 49945
+    Sweet, Elizabeth A.: 29944
+  Choice eliminated: Sweet, Elizabeth A.
+Round: 7
+  First Choice Counts:
+    Cote, Adam Roland: 53866
+    Mills, Janet T.: 63387
+  Choice eliminated: Cote, Adam Roland
+Round: 8
+  Choice Mills, Janet T. wins!
+  Count: 99942
