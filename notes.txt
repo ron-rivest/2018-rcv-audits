@@ -9,6 +9,13 @@ Also involved:
 
 --- NOTES IN REVERSE CHRONOLOGICAL ORDER ---
 
+Sat 09 Feb 2019
+
+    Pulled Zara's PR with change to rcv.py so that it works
+    using tallies (dicts mapping ballots to counts) rather than
+    ballot lists.
+    
+
 Fri 08 Feb 2019
 
     Phone call with Ron and Zara:
