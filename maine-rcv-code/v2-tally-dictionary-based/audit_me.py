@@ -10,6 +10,9 @@ from consistent_sampler import sampler
 import hashlib
 import bptool
 import rcv
+import numpy as np
+import time
+import pandas as pd
 
 hash_count = 0
 
@@ -35,82 +38,14 @@ def get_data():
     return L
 
 def rcv_wrapper(unique_ballots, tally_list, vote_for_n):
+    #TODO(zarap): move tiebreaker to main
     tie_breaker = [] 
     tally = {}
     for index, count in tally_list:
         tally[unique_ballots[index]] = count
     return rcv.rcv_winner(tally,tie_breaker, printing_wanted=False)
 
-def compute_win_probs_rcv(sample_tallies,
-                      total_num_votes,
-                      seed,
-                      num_trials,
-                      unique_ballots,
-                      real_names,
-                      vote_for_n):
-    """
 
-    Runs num_trials simulations of the Bayesian audit to estimate
-    the probability that each candidate would win a full recount.
-
-    In particular, we run a single iteration of a Bayesian audit
-    (extend each county's sample to simulate all the votes in the
-    county and calculate the overall winner across counties)
-    num_trials times.
-
-    Input Parameters:
-
-    -sample_tallies is a list of lists. Each list represents the sample tally
-    for a given county. So, sample_tallies[i] represents the tally for county
-    i. Then, sample_tallies[i][j] represents the number of votes candidate
-    j receives in county i.
-
-    -total_num_votes is a list of integers representing the number of
-    ballots that were cast in this election. Each integer represents the total
-    number of votes cast in a given county. So, total_num_votes[i] represents
-    the total votes for county i. The sum of all total_num_votes[i] is the
-    total number of votes in the entire election.
-
-    -seed is an integer or None. Assuming that it isn't None, we
-    use it to seed the random state for the audit.
-
-    -num_trials is an integer which represents how many simulations
-    of the Bayesian audit we run, to estimate the win probabilities
-    of the candidates.
-
-    -unique_ballots is an ordered list of tuples with ranked ballots
-         this corresponds to "candidate names" for a plurality election
-
-    --real_names ordered list of strings with candidate names
-
-    -vote_for_n is an integer, parsed from the command-line args. Its default
-    value is 1, which means we only calculate a single winner for the election.
-    For other values n, we simulate the unnsampled votes and define a win
-    for candidate i as any time they are in the top n candidates in the final
-    tally.
-
-    Returns:
-
-    -win_probs is a list of pairs (i, p) where p is the fractional
-    representation of the number of trials that candidate i has won
-    out of the num_trials simulations.
-    """
-
-    num_candidates = len(unique_ballots)
-    win_count =  {name : 0 for name in real_names} 
-    for i in range(num_trials):
-        # We want a different seed per trial.
-        # Adding i to seed caused correlations, as numpy apparently
-        # adds one per trial, so we multiply i by 314...
-        seed_i = seed + i*314159265
-        winner = bptool.compute_winner(sample_tallies,
-                                total_num_votes,
-                                vote_for_n,
-                                seed_i, unique_ballots, voting_method=rcv_wrapper)
-        win_count[winner] = win_count[winner] + 1
-    total_count = float(sum(win_count.values()))
-    win_probs = {name : win_count[name]/total_count for name in win_count.keys()}
-    return win_probs
 
 def get_candidates(tally):
     candidate_names = set()
@@ -118,47 +53,64 @@ def get_candidates(tally):
         for name in names:
             candidate_names.add(name)
     return list(candidate_names)
-def audit():
 
-    tally = get_data()
+def get_ballot_list():
+    votes_dir = "../../maine-rcv-data/"
+    votes_filename = votes_dir + 'me_votes.csv'
+    tally = rcv.read_ME_data(votes_filename, False)
     n = sum(tally.values())
+    L = rcv.convert_tally_to_ballots(tally)
+    return n,L
 
-    #TODO: better sampling
-    sample_tally = {}
-    for key, count in tally.items():
-        new_count = int(count/1000.0)
-        if new_count > 0:
-            sample_tally[key] = new_count
-    sample_size = sum(sample_tally.values())
-    print("Sample size: %d" % sample_size)
-   
-    tie_breaker = [] 
-    real_names = get_candidates(sample_tally)
+#TODO(zarap): refactor to make faster
+def get_sub_sample_tally(sample_size,n,L,seed):
+    sample_order = list(sampler(range(n), with_replacement=False,
+                                output='id', seed=seed))
+    sample = [L[sample_order[i]] for i in range(sample_size)]
+    sample_tally = rcv.convert_ballots_to_tally(sample)
+    return sample_tally
 
-    unique_ballots = list(sample_tally.keys())
-
+def audit(simulations = 1000):
+    data = []
+    n,L = get_ballot_list()
     vote_for_n = 1
-
-    num_trials = 100
-    print("Num trials: %d" % num_trials)
-
-    seed = 1
-    print("Seed: %s" %str(seed))
-
-    sample_tallies = [[ sample_tally[name]  for name  in unique_ballots ]]
-    win_probs = compute_win_probs_rcv(sample_tallies,
-                      [n], 
-                      seed,
-                      num_trials,
-                      unique_ballots,
-                      real_names,
-                      vote_for_n)
-    print("Win probs: %s" % str( win_probs))
+    num_trials = 1000
+    sample_size = 100
+    output_file = "audit_simulations_sample_size_%d.csv" % sample_size
+    print("simulations: %d sample size: %d n: %d " % (num_trials,sample_size,n))
+    #sample size
+    for seed in range(1,simulations+1):
+        print("seed: %d"%seed)
+        start = time.time()
+        sample_tally = get_sub_sample_tally(sample_size,n,L,seed)
+        tie_breaker = [] 
+        real_names = get_candidates(sample_tally)
+        unique_ballots = list(sample_tally.keys())
+        time_delta = time.time() - start
+        sample_tallies = [[ sample_tally[name]  for name  in unique_ballots ],]
+        win_probs = bptool.compute_win_probs_rcv(sample_tallies,
+                          [n], 
+                          seed,
+                          num_trials,
+                          unique_ballots,
+                          real_names,
+                          vote_for_n, rcv_wrapper)
+        win_probs_with_names = {real_names[i]: prob for i , prob in win_probs }
+        win_probs_with_names['seed'] = seed
+        win_probs_with_names['time_delta'] = time_delta
+        data.append(win_probs_with_names)
+        #bptool.print_results(real_names, win_probs, vote_for_n)
+        if seed % 50 == 1:
+            df = pd.DataFrame(data)
+            df.to_csv(output_file)
+    df = pd.DataFrame(data)
+    df.to_csv(output_file)  
 
 if __name__ == '__main__':
     audit()
-#import cProfile
-#cProfile.run('audit()')
+
+# import cProfile
+# cProfile.run('audit()')
 
 
     
