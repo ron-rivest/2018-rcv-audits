@@ -63,9 +63,7 @@ def get_ballot_list():
     return n,L
 
 #TODO(zarap): refactor to make faster
-def get_sub_sample_tally(sample_size,n,L,seed):
-    sample_order = list(sampler(range(n), with_replacement=False,
-                                output='id', seed=seed))
+def get_sub_sample_tally(sample_size,sample_order):
     sample = [L[sample_order[i]] for i in range(sample_size)]
     sample_tally = rcv.convert_ballots_to_tally(sample)
     return sample_tally
@@ -75,32 +73,36 @@ def audit(simulations = 1000):
     n,L = get_ballot_list()
     vote_for_n = 1
     num_trials = 1000
-    sample_size = 100
-    output_file = "audit_simulations_sample_size_%d.csv" % sample_size
-    print("simulations: %d sample size: %d n: %d " % (num_trials,sample_size,n))
+    output_file = "audit_simulations_vs_2.csv" 
+    print("simulations: %d n: %d " % (num_trials,n))
     #sample size
     for seed in range(1,simulations+1):
-        print("seed: %d"%seed)
-        start = time.time()
-        sample_tally = get_sub_sample_tally(sample_size,n,L,seed)
-        tie_breaker = [] 
-        real_names = get_candidates(sample_tally)
-        unique_ballots = list(sample_tally.keys())
-        time_delta = time.time() - start
-        sample_tallies = [[ sample_tally[name]  for name  in unique_ballots ],]
-        win_probs = bptool.compute_win_probs_rcv(sample_tallies,
-                          [n], 
-                          seed,
-                          num_trials,
-                          unique_ballots,
-                          real_names,
-                          vote_for_n, rcv_wrapper)
-        win_probs_with_names = {real_names[i]: prob for i , prob in win_probs }
-        win_probs_with_names['seed'] = seed
-        win_probs_with_names['time_delta'] = time_delta
-        data.append(win_probs_with_names)
-        #bptool.print_results(real_names, win_probs, vote_for_n)
-        if seed % 50 == 1:
+        sample_order = list(sampler(range(n), with_replacement=False,
+                            output='id', seed=seed))
+        for sample_size in range(100, 3001, 100):
+            print("seed: %d"%seed)
+            start = time.time()
+            sample_tally = get_sub_sample_tally(sample_size,sample_order)
+            tie_breaker = [] 
+            real_names = get_candidates(sample_tally)
+            unique_ballots = list(sample_tally.keys())
+            time_delta = time.time() - start
+            sample_tallies = [[ sample_tally[name]  for name  in unique_ballots ],]
+            win_probs = bptool.compute_win_probs_rcv(sample_tallies,
+                              [n], 
+                              seed,
+                              num_trials,
+                              unique_ballots,
+                              real_names,
+                              vote_for_n, rcv_wrapper)
+            win_probs_with_simulation_data = {real_names[i]: prob for i , prob in win_probs }
+            win_probs_with_simulation_data['seed'] = seed
+            win_probs_with_simulation_data['time_delta'] = time_delta
+            win_probs_with_simulation_data['sample_size'] = sample_size
+            data.append(win_probs_with_simulation_data)
+
+        if  seed % 5 == 1:
+            print("At seed %d from 1 to %d"%(seed,simulations+1))
             df = pd.DataFrame(data)
             df.to_csv(output_file)
     df = pd.DataFrame(data)
