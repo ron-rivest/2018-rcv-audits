@@ -233,7 +233,7 @@ def rcv_round(tally, tie_breaker):
     return (None, d, e, LL)
 
 
-def rcv_winner(tally, tie_breaker, printing_wanted=True):
+def rcv_winner(tally, tie_breaker, printing_wanted=False):
     """
     Return RCV (aka IRV) winner for given tally.
 
@@ -308,8 +308,7 @@ def clean(tally):
     tally = delete_undervotes(tally)
     return tally
 
-
-def read_ME_data(filename, printing_wanted=True):
+def read_ME_data(filename, printing_wanted=False):
     """
     Read CSV file and return tally with counts for ballots.
 
@@ -339,7 +338,22 @@ def read_ME_data(filename, printing_wanted=True):
         # for choice, count in clean_tally.items():
         #    print("    {}: {}".format(choice, count))
     return clean_tally
-    
+
+def convert_tally_to_ballots(tally):
+    ballots = []
+    for ballot in tally.keys():
+        ballot_list = [ballot] * tally[ballot]
+        ballots.extend(ballot_list)
+    return ballots
+
+def convert_ballots_to_tally(ballots):
+    tally = dict()
+    for ballot in ballots:
+        if ballot in tally.keys():
+            tally[ballot] = tally[ballot] + 1
+        else: 
+            tally[ballot] = 1
+    return tally
 
 def main():
     votes_dir = "../../maine-rcv-data/"
