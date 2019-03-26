@@ -3,9 +3,13 @@ Participants and collaborators (all free to edit this file):
     Ron Rivest
     Zara Perumal
 Also involved:
+    Michelle Blom
     Deb McDonough
     Chris Jerdonek
     Philip Stark (for non-Bayesian approach, if we get there)
+    Peter Stuckey
+    Vanessa Teague
+
 
 --- NOTES IN REVERSE CHRONOLOGICAL ORDER ---
 
